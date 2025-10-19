@@ -360,7 +360,7 @@ ___
   &nbsp;·&nbsp;
   <a href="docs/resource_hub/datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Config Guide</b></a>
   &nbsp;·&nbsp;
-  <a href="docs/resource_hub/TESTING_GUIDE.md">🧪 <b>Testing Guide</b></a>
+  <a href="docs/resource_hub/datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing Guide</b></a>
 </p>
 
 <p align="center">
