@@ -8,6 +8,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/G-Schumacher44/ecom-datalake-exten/actions/workflows/ci.yml">
+    <img alt="CI" src="https://github.com/G-Schumacher44/ecom-datalake-exten/actions/workflows/ci.yml/badge.svg?branch=main&event=push">
+  </a>
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-lightgrey">
   <img alt="Version" src="https://img.shields.io/badge/version-v0.1.0-blueviolet">
