@@ -22,7 +22,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e '.[dev]'
-          pip install -e git+https://github.com/G-Schumacher44/ecom_sales_data_generator.git
+          pip install 'git+https://github.com/G-Schumacher44/ecom_sales_data_generator.git#egg=ecom_sales_data_generator'
 
       - name: Lint with ruff
         run: ruff check src tests
