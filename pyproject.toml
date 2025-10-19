@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecom-datalake-extension"
+version = "0.1.0"
+description = "Utilities for exporting ecom generator output into a realistic data lake layout"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Garrett Schumacher" },
+]
+dependencies = [
+  "click>=8.1,<9",
+  "pandas>=2.1,<3",
+  "pyarrow>=14,<16",
+  "python-dateutil>=2.8,<3",
+  "tqdm>=4.66,<5",
+  "pendulum>=3,<4",
+]
+
+[project.optional-dependencies]
+gcs = [
+  "google-cloud-storage>=2.12,<3",
+]
+dev = [
+  "pytest>=8,<9",
+  "black>=24.4,<25",
+  "ruff>=0.5,<0.6",
+]
+
+[project.urls]
+homepage = "https://github.com/G-Schumacher44/ecom-datalake-exten"
+repository = "https://github.com/G-Schumacher44/ecom-datalake-exten"
+
+[project.scripts]
+ecomlake = "ecom_datalake_extension.cli:cli"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

@@ -1,0 +1,26 @@
+{
+    "python.defaultInterpreterPath": "/opt/anaconda3/envs/ecom-datalake-exten/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.venv": true,
+        "**/.ipynb_checkpoints": true
+    },
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/src"
+    ],
+    "terminal.integrated.env.osx": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    "python.envFile": "${workspaceFolder}/.env",
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "sqltools.useNodeRuntime": true,
+    "geminicodeassist.updateChannel": "Insiders",
+    "workbench.editorAssociations": {
+        "*.csv": "default"
+    },
+}
