@@ -10,7 +10,9 @@
   </a>
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-lightgrey">
-  <img alt="Version" src="https://img.shields.io/badge/version-v0.1.0-blueviolet">
+  <a href="https://github.com/G-Schumacher44/ecom-datalake-exten/releases/latest">
+    <img alt="Release" src="https://img.shields.io/github/v/release/G-Schumacher44/ecom-datalake-exten?display_name=tag">
+  </a>
 </p>
 
 ---
