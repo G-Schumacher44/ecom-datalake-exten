@@ -21,7 +21,7 @@
 ---
 
 # ecom-datalake-extension
-- The `ecomlake` CLI wraps the `ecom_sales_data_generator` engine so it ships clean CSVs into partitioned Parquet.
+- The `ecomlake` CLI wraps the `ecom_sales_data_generator` engine so it lifts raw generator CSVs into partitioned Parquet.
 - Adds lineage metadata (`event_id`, `batch_id`, `ingestion_ts`, `source_file`) and `_MANIFEST` + `_SUCCESS` markers.
 - Pushes partitions straight to Google Cloud Storage using Application Default Credentials or service-account keys.
 - Built to plug into the broader automation project—this repo stays focused on lake hydration only.
