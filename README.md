@@ -122,12 +122,16 @@ Everything stays modular and agnostic by design. Swap out buckets, prefixes, or 
 
 This repository is one part of a larger, interconnected set of projects. Here’s how they fit together:
 
-* **ecom_sales_data_generator** `(The Engine)`  
+* **[`ecom_sales_data_generator`](https://github.com/G-Schumacher44/ecom_sales_data_generator)** `(The Engine)`  
   Generates realistic, relational ecommerce datasets. This extension imports it and keeps that repo focused on synthesis.
-* **ecom-datalake-exten** `(This Repo · The Lake Layer)`  
+* **[`ecom-datalake-exten`](https://github.com/G-Schumacher44/ecom-datalake-exten)** `(This Repo · The Lake Layer)`  
   Converts generator output to Parquet, attaches lineage, and publishes to raw/bronze buckets.
-* **Automation repo** `(The Orchestrator)`  
-  Schedules backlog + streaming-style runs, triggers BigQuery loads/merges, and manages downstream DAGs.
+* **[`sql_stories_skills_builder`](https://github.com/G-Schumacher44/sql_stories_skills_builder)** `(Learning Lab)`  
+  Publishes the story modules and exercises that use these datasets for hands-on practice.
+* **[`sql_stories_portfolio_demo`](https://github.com/G-Schumacher44/sql_stories_portfolio_demo/tree/main)** `(The Showcase)`  
+  Curates the best case studies into a polished portfolio for professional storytelling.
+* **gcs-automation-project** `(In Development · The Orchestrator)`  
+  Planned orchestration layer for scheduling backlog runs, triggering BigQuery loads/merges, and coordinating downstream DAGs.
 
 </details>
 
