@@ -139,5 +139,7 @@ Need a deeper dive? Pop open the YAML next to this guide—the inline comments h
   &nbsp;·&nbsp;
   <a href="TESTING_GUIDE.md">🧪 <b>Testing</b></a>
   &nbsp;·&nbsp;
+  <a href="workflows/BACKLOG_BEAR.md">🧸 <b>Workflows</b></a>
+  &nbsp;·&nbsp;
   <a href="../CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
 </p>

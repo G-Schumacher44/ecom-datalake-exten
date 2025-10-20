@@ -142,6 +142,7 @@ Check the console output to verify object paths before removing `--dry-run` for 
 - [ ] `black --check src tests`
 - [ ] Optional: `python -m build`
 - [ ] Optional: `pre-commit run --all-files`
+- [ ] Backlog Bear workflow playbook updated if automation changed
 - [ ] README + resource hub docs updated to reflect new behavior
 
 Once green locally, CI (`.github/workflows/ci.yml`) mirrors these steps upon PR/push.
@@ -160,6 +161,8 @@ Need deeper diagnostics? See individual test modules under `tests/` for more tar
   <a href="CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
   &nbsp;·&nbsp;
   <a href="TESTING_GUIDE.md">🧪 <b>Testing</b></a>
+  &nbsp;·&nbsp;
+  <a href="workflows/BACKLOG_BEAR.md">🧸 <b>Workflows</b></a>
   &nbsp;·&nbsp;
   <a href="../CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
 </p>

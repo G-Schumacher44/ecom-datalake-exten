@@ -104,7 +104,9 @@ Everything stays modular and agnostic by design. Swap out buckets, prefixes, or 
 
 - **Lake Resources**
   - [Lake Config Guide](docs/resource_hub/datalakes_extention/CONFIG_GUIDE.md)
-  - [Testing Guide](docs/resource_hub/TESTING_GUIDE.md)
+  - [Testing Guide](docs/resource_hub/datalakes_extention/TESTING_GUIDE.md)
+- **Workflow Playbooks**
+  - [Backlog Bear · 5-Year Bronze Backfill](docs/resource_hub/datalakes_extention/workflows/BACKLOG_BEAR.md)
 - **Generator Resources**
   - [Generator README](docs/resource_hub/README_generator.md)
   - [Generator Config Guide](docs/resource_hub/CONFIG_GUIDE_generator.md)
