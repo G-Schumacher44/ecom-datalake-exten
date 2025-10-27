@@ -88,14 +88,17 @@ This schema reflects the structure of `ecom_retailer_v3.db`, prebuilt in each sc
 <p align="center">
   <a href="../../README.md">🏠 <b>Home</b></a>
   &nbsp;·&nbsp;
-  <a href="datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
+  <a href="../datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
   &nbsp;·&nbsp;
-  <a href="datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
+  <a href="../datalakes_extention/CLI_REFERENCE.md">🧭 <b>CLI Reference</b></a>
   &nbsp;·&nbsp;
-  <a href="CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
+  <a href="../datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
+  &nbsp;·&nbsp;
+  <a href="../datalakes_extention/workflows/BACKLOG_BEAR.md">🧸 <b>Workflows</b></a>
+  &nbsp;·&nbsp;
+  <a href="./CONFIG_GUIDE.md">🛠️ <b>Generator Config</b></a>
 </p>
 
 <p align="center">
   <sub>✨ Synthetic Data · Python · QA Framework ✨</sub>
 </p>
-

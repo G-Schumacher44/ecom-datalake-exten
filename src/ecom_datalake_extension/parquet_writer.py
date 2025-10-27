@@ -85,10 +85,15 @@ def write_partitioned_parquet(
     max_event_dt: str | None = None
 
     if table_config.event_date_column and table_config.event_date_column in df.columns:
-        dates = pd.to_datetime(df[table_config.event_date_column])
-        if not dates.empty:
-            min_event_dt = dates.min().date().isoformat()
-            max_event_dt = dates.max().date().isoformat()
+        dates = pd.to_datetime(
+            df[table_config.event_date_column],
+            format="mixed",
+            errors="coerce",
+        )
+        valid_dates = dates.dropna()
+        if not valid_dates.empty:
+            min_event_dt = valid_dates.min().date().isoformat()
+            max_event_dt = valid_dates.max().date().isoformat()
 
     total_rows_written = 0
     checksum_values: list[str] = []

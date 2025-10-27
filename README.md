@@ -62,7 +62,7 @@ ___
       --config gen_config/ecom_sales_gen_quick.yaml \
       --artifact-root artifacts \
       --messiness-level none \
-      --generator-src ../ecom_sales_data_generator/src
+      --generator-src ../ecom_sales_data_generator/src  # optional path; point at any generator checkout when it's not pip-installed
 
     ecomlake export-raw \
       --source artifacts/raw_run_<TIMESTAMP> \
@@ -75,6 +75,8 @@ ___
       --prefix ecom/raw \
       --ingest-date 2024-02-15
     ```
+
+    _Tip:_ drop the `--generator-src` line once `ecom_sales_data_generator` is installed in your environment. For every flag and variant, keep [the CLI reference](docs/resource_hub/datalakes_extention/CLI_REFERENCE.md) handy while you run through the steps above.
 </details>
 
 ---
@@ -107,12 +109,15 @@ Everything stays modular and agnostic by design. Swap out buckets, prefixes, or 
 - **Lake Resources**
   - [Lake Config Guide](docs/resource_hub/datalakes_extention/CONFIG_GUIDE.md)
   - [Testing Guide](docs/resource_hub/datalakes_extention/TESTING_GUIDE.md)
+  - [ecomlake CLI Reference](docs/resource_hub/datalakes_extention/CLI_REFERENCE.md)
 - **Workflow Playbooks**
   - [Backlog Bear · 5-Year Bronze Backfill](docs/resource_hub/datalakes_extention/workflows/BACKLOG_BEAR.md)
 - **Generator Resources**
-  - [Generator README](docs/resource_hub/README_generator.md)
-  - [Generator Config Guide](docs/resource_hub/CONFIG_GUIDE_generator.md)
-  - [Database Schema Reference](docs/resource_hub/database_schema_reference.md)
+  - [Generator Overview](docs/resource_hub/ecom_generator/README.md)
+  - [Generator Config Guide](docs/resource_hub/ecom_generator/CONFIG_GUIDE.md)
+  - [Database Schema Reference](docs/resource_hub/ecom_generator/database_schema_reference.md)
+- **Improvement Roadmaps**
+  - [Post-First-Hydration Improvement Plan](docs/post_first_hydration_improvement_plan.md)
 
 </details>
 
@@ -272,7 +277,7 @@ ecomlake run-generator \
   --config gen_config/ecom_sales_gen_quick.yaml \
   --artifact-root artifacts \
   --messiness-level none \
-  --generator-src ../ecom_sales_data_generator/src
+  --generator-src ../ecom_sales_data_generator/src  # optional path; point at any generator checkout when it's not pip-installed
 ```
 
 </details>
@@ -356,7 +361,7 @@ ___
 
 ## 🤝 On Generative AI Use
 
-Generative AI tools (Gemini 2.5-PRO, ChatGPT 4o - 4.1) were used throughout this project as part of an integrated workflow — supporting code generation, documentation refinement, and idea testing. These tools accelerated development, but the logic, structure, and documentation reflect intentional, human-led design. This repository reflects a collaborative process: where automation supports clarity, and iteration deepens understanding.
+Generative AI tools (Gemini 2.5-PRO, ChatGPT 5) were used throughout this project as part of an integrated workflow — supporting code generation, documentation refinement, and idea testing. These tools accelerated development, but the logic, structure, and documentation reflect intentional, human-led design. This repository reflects a collaborative process: where automation supports clarity, and iteration deepens understanding.
 
 ---
 
@@ -369,9 +374,15 @@ ___
 <p align="center">
   <a href="README.md">🏠 <b>Home</b></a>
   &nbsp;·&nbsp;
-  <a href="docs/resource_hub/datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Config Guide</b></a>
+  <a href="docs/resource_hub/datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
   &nbsp;·&nbsp;
-  <a href="docs/resource_hub/datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing Guide</b></a>
+  <a href="docs/resource_hub/datalakes_extention/CLI_REFERENCE.md">🧭 <b>CLI Reference</b></a>
+  &nbsp;·&nbsp;
+  <a href="docs/resource_hub/datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
+  &nbsp;·&nbsp;
+  <a href="docs/resource_hub/datalakes_extention/workflows/BACKLOG_BEAR.md">🧸 <b>Workflows</b></a>
+  &nbsp;·&nbsp;
+  <a href="docs/resource_hub/ecom_generator/CONFIG_GUIDE.md">🛠️ <b>Generator Config</b></a>
 </p>
 
 <p align="center">
