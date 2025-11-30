@@ -19,8 +19,7 @@ logs/
 # Environment files
 .env
 .env.*
-# Documentation drafts
-agents.md
+
 # Tooling
 .idea/
 .python-version
