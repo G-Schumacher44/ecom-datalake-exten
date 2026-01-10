@@ -28,3 +28,6 @@ logs/
 
 # Refactor Checklists
 docs/resource_hub/refactor_docs
+
+# Backup directories from smoke tests
+.backup_smoke_test_*/
