@@ -36,6 +36,9 @@ batch_id="backlog-${today_stamp}"
 # Checkpoint file to track progress
 CHECKPOINT_FILE="${ARTIFACT_ROOT}/.backlog_checkpoint"
 
+# Track if we've exported dimension tables (only export once at start)
+DIMENSIONS_EXPORTED_FILE="${ARTIFACT_ROOT}/.dimensions_exported"
+
 # One-time setup: Generate static lookups if not exists
 if [ ! -f "artifacts/static_lookups/customers.csv" ]; then
   echo "🏗️  Generating static lookups (300K customers, 3K products)..."
@@ -100,11 +103,13 @@ while [ "$current_ord" -le "$end_ord" ]; do
       set -e  # Exit on any error within this subshell
 
       echo "📦 Generating source CSVs for window ${chunk_start} → ${chunk_end}"
+      # Convert relative paths to absolute for generator
+      STATIC_LOOKUPS_DIR="$(pwd)/artifacts/static_lookups"
       ecomlake run-generator \
         --config "$CONFIG_PATH" \
         --artifact-root "$ARTIFACT_ROOT" \
         --messiness-level "$MESSINESS_LEVEL" \
-        --load-lookups-from "artifacts/static_lookups" \
+        --load-lookups-from "$STATIC_LOOKUPS_DIR" \
         --id-state-file "$ID_STATE_FILE" \
         --start-date "$chunk_start" \
         --end-date "$chunk_end"
@@ -121,10 +126,23 @@ while [ "$current_ord" -le "$end_ord" ]; do
         --target-size-mb 96
         --source-prefix "gs://${BUCKET}/${PREFIX}"
       )
+
+      # Export dimension tables only on first chunk
+      if [ ! -f "$DIMENSIONS_EXPORTED_FILE" ]; then
+        echo "📊 First chunk: exporting dimension tables (customers by signup_date, products by category)"
+        export_args+=( --lookups-from "$STATIC_LOOKUPS_DIR" )
+      fi
+
       if [ -n "$POST_EXPORT_HOOK" ]; then
         export_args+=( --post-export-hook "$POST_EXPORT_HOOK" )
       fi
       ecomlake export-raw "${export_args[@]}"
+
+      # Mark dimensions as exported after first successful chunk
+      if [ ! -f "$DIMENSIONS_EXPORTED_FILE" ]; then
+        echo "dimensions_exported" > "$DIMENSIONS_EXPORTED_FILE"
+        echo "✅ Dimension tables exported (will not be re-exported in subsequent chunks)"
+      fi
 
       echo "☁️  Uploading partitions to gs://${BUCKET}/${PREFIX}"
       current_date="$chunk_start"
@@ -191,8 +209,13 @@ done
 
 echo "🎉 Backlog Bear finished. Verify gs://${BUCKET}/${PREFIX} for ${START_DATE} → ${END_DATE}."
 
-# Clean up checkpoint file on successful completion
+# Clean up checkpoint and dimensions marker files on successful completion
 if [ -f "$CHECKPOINT_FILE" ]; then
   rm "$CHECKPOINT_FILE"
   echo "🧹 Checkpoint file cleaned up"
+fi
+
+if [ -f "$DIMENSIONS_EXPORTED_FILE" ]; then
+  rm "$DIMENSIONS_EXPORTED_FILE"
+  echo "🧹 Dimensions marker file cleaned up"
 fi
