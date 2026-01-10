@@ -23,3 +23,8 @@ logs/
 # Tooling
 .idea/
 .python-version
+.claude
+.vscode
+
+# Refactor Checklists
+docs/resource_hub/refactor_docs

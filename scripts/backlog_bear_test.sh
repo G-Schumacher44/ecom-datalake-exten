@@ -9,7 +9,7 @@ BUCKET="gcs-automation-project-raw"
 PREFIX="ecom/raw"
 MESSINESS_LEVEL="medium_mess"
 START_DATE="2020-01-01"
-END_DATE="2026-01-08"
+END_DATE="2020-02-29"
 CHUNK_SIZE=30        # number of consecutive days per export/upload cycle (increased from 7 for better return capture)
 POST_EXPORT_HOOK=""  # optional: e.g. "hooks.my_module:write_manifest_summary"
 # -----------------------------------------------------------------------------

@@ -107,25 +107,56 @@ Transforms CSV artifacts into Hive-style Parquet partitions with manifests and o
 ecomlake export-raw --source PATH [OPTIONS]
 ```
 
-| Option                               | Required | Default                  | Description                                                                    |
-| ------------------------------------ | -------- | ------------------------ | ------------------------------------------------------------------------------ |
-| `--source PATH`                      | ✅        | —                        | Directory produced by `run-generator`.                                         |
-| `--target PATH`                      | ❌        | `output/raw`             | Root directory for Parquet output.                                             |
-| `--ingest-date YYYY-MM-DD`           | ❌        | today                    | Export a single ingest date. Mutually exclusive with range options.            |
-| `--start-date YYYY-MM-DD`            | ❌        | —                        | Start date for a range of ingest dates. Requires `--end-date` or/and `--days`. |
-| `--end-date YYYY-MM-DD`              | ❌        | —                        | End date (inclusive) for range exports.                                        |
-| `--days INT`                         | ❌        | `None`                   | Number of consecutive days to export starting from `--start-date`.             |
-| `--dates LIST`                       | ❌        | —                        | Comma-separated list of specific ingest dates.                                 |
-| `--batch-id TEXT`                    | ❌        | auto                     | Override auto-generated batch identifier.                                      |
-| `--target-size-mb INT`               | ❌        | `DEFAULT_TARGET_SIZE_MB` | Desired Parquet file size; used to calculate chunk rows.                       |
-| `--table TABLE`                      | ❌        | all tables               | Repeatable option to restrict export to specific tables.                       |
-| `--source-prefix TEXT`               | ❌        | `None`                   | URI prefix recorded in the `source_file` lineage column.                       |
-| `--post-export-hook module:function` | ❌        | —                        | Repeatable hook invoked after each partition (QA, metrics, etc.).              |
+| Option                               | Required | Default                  | Description                                                                                 |
+| ------------------------------------ | -------- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| `--source PATH`                      | ✅        | —                        | Directory produced by `run-generator`.                                                      |
+| `--target PATH`                      | ❌        | `output/raw`             | Root directory for Parquet output.                                                          |
+| `--ingest-date YYYY-MM-DD`           | ❌        | today                    | Export a single ingest date. Mutually exclusive with range options.                         |
+| `--start-date YYYY-MM-DD`            | ❌        | —                        | Start date for a range of ingest dates. Requires `--end-date` or/and `--days`.              |
+| `--end-date YYYY-MM-DD`              | ❌        | —                        | End date (inclusive) for range exports.                                                     |
+| `--days INT`                         | ❌        | `None`                   | Number of consecutive days to export starting from `--start-date`.                          |
+| `--dates LIST`                       | ❌        | —                        | Comma-separated list of specific ingest dates.                                              |
+| `--batch-id TEXT`                    | ❌        | auto                     | Override auto-generated batch identifier.                                                   |
+| `--target-size-mb INT`               | ❌        | `DEFAULT_TARGET_SIZE_MB` | Desired Parquet file size; used to calculate chunk rows.                                    |
+| `--table TABLE`                      | ❌        | all tables               | Repeatable option to restrict export to specific tables.                                    |
+| `--source-prefix TEXT`               | ❌        | `None`                   | URI prefix recorded in the `source_file` lineage column.                                    |
+| `--lookups-from PATH`                | ❌        | —                        | Directory with static lookup CSVs (customers.csv, product_catalog.csv) for dimension export. |
+| `--post-export-hook module:function` | ❌        | —                        | Repeatable hook invoked after each partition (QA, metrics, etc.).                           |
 
 **Artifacts per table/date:**
+
+Transactional tables (orders, shopping_carts, returns):
 - `table/ingest_dt=YYYY-MM-DD/part-0000.parquet`
 - `_MANIFEST.json` with file list, row counts, checksums
 - `_SUCCESS` marker
+
+Dimension tables (when using `--lookups-from`):
+
+- `customers/signup_date=YYYY-MM-DD/part-0000.parquet` (partitioned by customer signup date)
+- `product_catalog/category=CategoryName/part-0000.parquet` (partitioned by product category)
+- `_MANIFEST.json` and `_SUCCESS` for each partition
+
+**Example with dimension table export:**
+
+```bash
+# Export dimensions from static lookups on first chunk
+ecomlake export-raw \
+  --source artifacts/raw_run_20251019T173945Z \
+  --target output/raw \
+  --ingest-date 2024-02-15 \
+  --lookups-from artifacts/static_lookups
+
+# Results in:
+# - customers/signup_date=2019-01-01/part-0000.parquet
+# - customers/signup_date=2019-01-02/part-0000.parquet
+# - ... (2,562 customer partitions for 2019-2026)
+# - product_catalog/category=Electronics/part-0000.parquet
+# - product_catalog/category=Books/part-0000.parquet
+# - ... (5 category partitions)
+# - orders/ingest_dt=2024-02-15/part-0000.parquet
+# - shopping_carts/ingest_dt=2024-02-15/part-0000.parquet
+# - returns/ingest_dt=2024-02-15/part-0000.parquet
+```
 
 ---
 

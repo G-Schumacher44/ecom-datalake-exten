@@ -33,6 +33,8 @@ def run_generator_cli(
     config_path: Path,
     output_dir: Path,
     messiness_level: str = "baseline",
+    start_date: str | None = None,
+    end_date: str | None = None,
     extra_args: Iterable[str] | None = None,
     generator_src: Path | None = None,
 ) -> None:
@@ -61,6 +63,8 @@ def run_generator_cli(
         "--messiness-level",
         messiness_level,
     ]
+    if start_date and end_date:
+        cmd.extend(["--start-date", start_date, "--end-date", end_date])
     if extra_args:
         cmd.extend(extra_args)
 

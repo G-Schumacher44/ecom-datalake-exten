@@ -62,18 +62,29 @@ def write_partitioned_parquet(
     *,
     table_config: TableExportConfig,
     output_root: Path,
-    ingest_dt: date,
+    ingest_dt: date | None,
     batch_id: str,
     source_prefix: str | None = None,
     target_size_mb: int = DEFAULT_TARGET_SIZE_MB,
+    partition_path_override: str | None = None,
 ) -> tuple[list[ManifestFile], str | None, str | None, int, list[str]]:
     """
     Writes Parquet files for a single table partition and returns manifest metadata.
+
+    Args:
+        partition_path_override: If provided, use this path instead of table_name/ingest_dt=YYYY-MM-DD.
+                                 Used for dimension tables with custom partitioning (e.g., customers/signup_date=YYYY-MM-DD)
     """
     if df.empty:
         return [], None, None, 0, []
 
-    partition_dir = output_root / table_config.table_name / f"ingest_dt={ingest_dt:%Y-%m-%d}"
+    if partition_path_override:
+        partition_dir = output_root / partition_path_override
+    elif ingest_dt:
+        partition_dir = output_root / table_config.table_name / f"ingest_dt={ingest_dt:%Y-%m-%d}"
+    else:
+        raise ValueError("Either ingest_dt or partition_path_override must be provided")
+
     partition_dir.mkdir(parents=True, exist_ok=True)
     ingestion_ts = utc_now_iso()
 

@@ -143,7 +143,16 @@ This repository is one part of a larger, interconnected set of projects. Here’
 <details>
 <summary><strong>🫆 Version Release Notes</strong></summary>
 
-### ✅ v0.1.0 (Current)
+### ✅ v0.2.0 (Current)
+
+- **Dimension table partitioning**: Customers partitioned by `signup_date`, products by `category` for efficient queries.
+- **Static lookup export**: New `--lookups-from` parameter exports pre-generated dimension tables with custom partitioning.
+- **One-time dimension export**: Dimensions exported only on first chunk, significantly reducing processing time for multi-chunk backlogs.
+- **Customer signup date range fix**: Generator now correctly respects `global_start_date` parameter for multi-year customer distributions.
+- **Partition path override**: Support for custom partition paths beyond standard `ingest_dt` partitioning.
+
+### v0.1.0
+
 - Multi-date exports with enriched manifests (row counts + checksums).
 - Post-export hook framework for custom QA/metrics.
 - CLI lint/CI pipeline, black/ruff configuration, and pre-commit support.
