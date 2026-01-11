@@ -15,12 +15,15 @@ logs/
 
 # OS files
 .DS_Store
+*.bak*
 
 # Environment files
 .env
 .env.*
 # Documentation drafts
 agents.md
+docs/refactor_docs/*
+
 # Tooling
 .idea/
 .python-version
