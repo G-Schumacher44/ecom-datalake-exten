@@ -90,7 +90,7 @@ tables:
       - { name: inventory_quantity, type: INTEGER }
 
   - name: shopping_carts
-    generate: 12000 # Reduced from production but enough for QA stability.
+    generate: 40000 # Represents initial traffic volume, which is higher than the customer base.
     columns:
       - { name: cart_id, type: TEXT }
       - { name: customer_id, type: TEXT }
@@ -235,7 +235,7 @@ tables:
 # These are cached and reused across dependent tables.
 lookup_config:
   product_catalog:
-    num_products: 300
+    num_products: 3000
     min_price: 5.0
     max_price: 250.0
     cost_price_margin_range: [0.4, 0.7] # NEW: Product cost is 40-70% of its unit price.
@@ -243,7 +243,7 @@ lookup_config:
     max_inventory_quantity: 250
     generator: generators.generator_catalog.generate_product_catalog
   customers:
-    num_customers: 6000 # Scaled down for smoke testing while keeping QA stable.
+    num_customers: 300000 # Full scale for 6-year production run
     min_age: 18
     max_age: 70
     gender_unknown_prob: 0.05
@@ -443,7 +443,7 @@ parameters:
   signup_years: 1
   expedited_pct: 20
   gender_unknown_prob: 5
-  order_days_back: 60
+  order_days_back: 365
   conversion_rate: 0.12
   # NEW: Controls how quickly a new registered customer makes their first visit.
   time_to_first_cart_days_range: [1, 14]

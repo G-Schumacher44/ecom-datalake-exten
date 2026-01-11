@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../img/sql_stories_logo.png" width="1000"/>
+  <img src="repo_files/sql_stories_logo.png" width="1000"/>
   <br>
   <em>Retail Scenario Data Generator + QA Framework</em>
 </p>
@@ -84,18 +84,3 @@ This schema reflects the structure of `ecom_retailer_v3.db`, prebuilt in each sc
 - Or rebuild using the CSVs and SQL in `db_builder.zip`
 
 > 🧩 The schema supports modular scenario design — join logic is consistent across all stories.
-
-<p align="center">
-  <a href="../../README.md">🏠 <b>Home</b></a>
-  &nbsp;·&nbsp;
-  <a href="datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
-  &nbsp;·&nbsp;
-  <a href="datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
-  &nbsp;·&nbsp;
-  <a href="CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
-</p>
-
-<p align="center">
-  <sub>✨ Synthetic Data · Python · QA Framework ✨</sub>
-</p>
-

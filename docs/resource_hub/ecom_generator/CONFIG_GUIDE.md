@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../img/sql_stories_logo.png" width="1000"/>
+  <img src="repo_files/sql_stories_logo.png" width="1000"/>
   <br>
   <em>Retail Scenario Data Generator + QA Framework</em>
 </p>
@@ -7,7 +7,7 @@
 <p align="center">
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-lightgrey">
-  <img alt="Version" src="https://img.shields.io/badge/version-v0.3.0-blueviolet">
+  <img alt="Version" src="https://img.shields.io/badge/version-v0.3.1-blueviolet">
 </p>
 
 ---
@@ -43,12 +43,39 @@ The YAML file is organized into several key sections:
 
 - **`row_generators`**: Maps table names to the specific Python generator functions responsible for creating their data.
 - **`output_dir`**: Specifies the directory where all generated CSV files and the SQL loader script will be saved.
-- **`faker_seed`**: A seed value for the Faker library to ensure that generated data (like names and addresses) is reproducible across runs.
+- **`faker_seed`**: A seed value for Faker (and related RNGs) to ensure that generated data is reproducible across runs.
 - **`tables`**: Defines the schema and generation rules for transactional tables like `shopping_carts`, `orders`, and `returns`.
 - **`lookup_config`**: Defines the generation rules for foundational lookup tables like `customers` and `product_catalog`.
 - **`vocab`**: Contains lists of controlled vocabulary used to populate categorical fields (e.g., `payment_methods`, `shipping_speeds`).
 - **`parameters`**: A powerful section for controlling the core logic and statistical properties of the simulation.
 - **`channel_rules`**: Allows for defining specific business rules that apply to different order channels (e.g., "Web" vs. "Phone").
+
+---
+
+## 🧰 CLI Options (Generator Runner)
+
+These CLI flags extend generation workflows without changing the YAML file.
+
+**Static lookup reuse**
+
+- `--generate-lookups-only`: Generate lookup tables (e.g., `customers`, `product_catalog`) and exit after writing CSVs.
+- `--load-lookups-from <dir>`: Load `customers.csv` and `product_catalog.csv` from a directory instead of regenerating.
+  - **Note**: Loaded lookup tables are protected from being overwritten. They will not be saved to the chunk output directory and will not be modified during post-processing steps (e.g., customer tier recalculation, cart total updates).
+
+**Sequential ID state**
+
+- `--id-state-file <path>`: Persist sequential IDs for carts/orders/returns across runs.
+
+**Example**
+
+```bash
+ecomgen \
+  --config config/ecom_sales_gen_template.yaml \
+  --load-lookups-from artifacts/static_lookups \
+  --id-state-file artifacts/.id_state.json \
+  --start-date 2020-01-01 \
+  --end-date 2020-01-31
+```
 
 ---
 
@@ -153,6 +180,8 @@ It's important to understand the distinction between these two sections.
 
 By separating these, the configuration remains logical and easy to follow.
 
+**Tip:** For chunked or multi-run generation, you can pre-generate lookup tables once and reuse them with `--load-lookups-from`, and persist sequential IDs with `--id-state-file`.
+
 ---
 
 ## 🧪 Experimenting
@@ -161,16 +190,17 @@ The best way to learn is to experiment! Try changing the `conversion_rate` or th
 
 ---
 
+
 <p align="center">
-  <sub>✨ Synthetic Data · Python · QA Framework ✨</sub>
+  <a href="README.md">🏠 <b>Main README</b></a>
+  &nbsp;·&nbsp;
+  <a href="CONFIG_GUIDE.md">⚙️ <b>Config Guide</b></a>
+  &nbsp;·&nbsp;
+  <a href="TESTING_GUIDE.md">🧪 <b>Testing Guide</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/G-Schumacher44/sql_stories_portfolio_demo">📸 <b>See it in Action</b></a>
 </p>
 
 <p align="center">
-  <a href="../../README.md">🏠 <b>Home</b></a>
-  &nbsp;·&nbsp;
-  <a href="datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
-  &nbsp;·&nbsp;
-  <a href="datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
-  &nbsp;·&nbsp;
-  <a href="CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
+  <sub>✨ Synthetic Data · Python · QA Framework ✨</sub>
 </p>

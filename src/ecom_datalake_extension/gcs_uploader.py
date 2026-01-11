@@ -8,9 +8,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 try:
+    from google.api_core import retry  # type: ignore
     from google.cloud import storage  # type: ignore
 except ImportError as exc:  # pragma: no cover - handled at runtime
     storage = None
+    retry = None
     _IMPORT_ERROR = exc
 else:
     _IMPORT_ERROR = None
@@ -55,13 +57,37 @@ def upload_partition(
     client = client or _ensure_storage_client()
     bucket = client.bucket(bucket_name)
 
+    # Configure retry strategy for transient failures
+    upload_retry = (
+        retry.Retry(
+            initial=1.0,
+            maximum=60.0,
+            multiplier=2.0,
+            deadline=600.0,  # 10 minute total retry deadline
+            predicate=retry.if_transient_error,
+        )
+        if retry
+        else None
+    )
+
     files_uploaded = 0
     for path in local_partition_dir.glob("*"):
         if path.is_file():
             relative_name = path.name
             blob_path = f"{prefix.strip('/')}/{relative_name}"
             blob = bucket.blob(blob_path)
-            blob.upload_from_filename(path)
+
+            # Upload with retry and timeout configuration
+            if upload_retry:
+                blob.upload_from_filename(
+                    path,
+                    timeout=300,  # 5 minute timeout per file
+                    retry=upload_retry,
+                )
+            else:
+                # Fallback without retry if google.api_core not available
+                blob.upload_from_filename(path)
+
             files_uploaded += 1
 
     return UploadResult(files_uploaded=files_uploaded, bucket=bucket_name, prefix=prefix)
