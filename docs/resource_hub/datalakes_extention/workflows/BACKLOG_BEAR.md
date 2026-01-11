@@ -16,14 +16,14 @@ confidently and repeatably, with guaranteed data continuity across all partition
 
 ## 🎯 Objective
 
-- Generate **static customer and product catalogs** for 300K customers and 3K products (2019 signup dates)
+- Generate **static customer and product catalogs** for 300K customers and 3K products (2019-2026 signup dates)
 - Generate medium mess synthetic CSVs with the ecom generator in 30-day chunks
 - Convert each chunk into date-partitioned Parquet with manifests
 - Upload those partitions to the raw GCS bucket (`ecom/raw`)
 - Maintain sequential ID continuity across all chunks
 - Clean up local staging artifacts between iterations
 
-By default the playbook covers **2020-01-01 → 2026-01-08** (6+ years) in **30-day** chunks, generating ~2,200 daily partitions.
+By default the playbook covers **2020-01-01 -> 2026-01-08** (6+ years) in **30-day** chunks, generating ~2,200 daily partitions.
 
 ---
 
@@ -63,7 +63,9 @@ Tune them at the top of the script before launch.
 
 ### 🔑 Key Features
 
-- **Static Lookups**: 300K customers and 3K products generated once in 2019, reused across all chunks
+- **Static Lookups**: 
+  - 300K customers generated across a 7-year period (2019-2026).
+  - Product Catalog with 3K products generated once, reused across all chunks
 - **Sequential IDs**: Cart, order, and return IDs maintain continuity across all 73 chunks via state file
 - **Checkpoint Resume**: Automatically resumes from last completed date if interrupted
 - **Date Filtering**: Each table partitioned by its event date (orders by order_date, carts by created_at, etc.)
@@ -97,7 +99,7 @@ tail -f backlog_bear.log
 
 ### What Happens During Execution
 
-For each 30-day chunk (73 chunks total):
+For each 30-day chunk (74 chunks total):
 
 1. **Check Static Lookups** - Uses existing `artifacts/static_lookups/` or generates if missing
 2. **Initialize ID State** - Creates `artifacts/.id_state.json` if needed (tracks last cart_id, order_id, return_id)
@@ -115,7 +117,7 @@ For each 30-day chunk (73 chunks total):
 7. **Save Checkpoint** - Records completed date in `artifacts/.backlog_checkpoint`
 8. **Update ID State** - Persists last used IDs for next chunk
 
-**Estimated Runtime:** 18-36 hours for full 6-year run (depends on system specs)
+**Estimated Runtime:** 5-8 hours for full 6-year run (depends on system specs)
 
 ### Resuming After Interruption
 
@@ -131,29 +133,49 @@ cat artifacts/.backlog_checkpoint
 
 ---
 
+## 🧪 Smoke Test (Short Run)
+
+Use the smoke test script to validate generator wiring, static lookups, and upload flow on a small date range.
+It creates `scripts/backlog_bear_test.sh` with a reduced window and then runs it.
+
+```bash
+# Runs a short-range test and cleans up after completion
+./scripts/smoke_test.sh
+```
+
+---
+
 ## 🧪 Verification Checklist
 
 ### Dimension Tables (Static, Business-Attribute Partitioned)
 
 ```bash
+# Set your bucket and prefix once for all checks
+export BUCKET="gcs-automation-project-raw"
+export PREFIX="ecom/raw"
+
+# Preflight: verify auth and path
+gcloud auth list
+gsutil ls "gs://${BUCKET}/${PREFIX}/"
+
 # Check customer partitions (should be 2,562 signup_date partitions)
-gsutil ls gs://gcs-automation-project-raw/ecom/raw/customers/ | wc -l
+gsutil ls "gs://${BUCKET}/${PREFIX}/customers/" | wc -l
 
 # Check product partitions (should be 5 category partitions)
-gsutil ls gs://gcs-automation-project-raw/ecom/raw/product_catalog/
+gsutil ls "gs://${BUCKET}/${PREFIX}/product_catalog/"
 
 # Sample a customer partition
-gsutil cat gs://gcs-automation-project-raw/ecom/raw/customers/signup_date=2020-01-15/_MANIFEST.json | jq
+gsutil cat "gs://${BUCKET}/${PREFIX}/customers/signup_date=2020-01-15/_MANIFEST.json" | jq
 ```
 
 ### Transactional Tables (Date Partitioned by ingest_dt)
 
 ```bash
 # Check orders partitions (should be ~2,200 ingest_dt partitions)
-gsutil ls -r gs://gcs-automation-project-raw/ecom/raw/orders | head
+gsutil ls -r "gs://${BUCKET}/${PREFIX}/orders" | head
 
 # Verify manifests exist
-gsutil ls gs://gcs-automation-project-raw/ecom/raw/orders/ingest_dt=2020-01-01/_MANIFEST.json
+gsutil ls "gs://${BUCKET}/${PREFIX}/orders/ingest_dt=2020-01-01/_MANIFEST.json"
 
 # Spot-read Parquet locally
 python -c "import pandas as pd; print(pd.read_parquet('output/raw/orders/ingest_dt=2020-01-01/part-0000.parquet').head())"
@@ -165,7 +187,8 @@ python -c "import pandas as pd; print(pd.read_parquet('output/raw/orders/ingest_
 gcloud storage du gs://gcs-automation-project-raw --recursive --summarize --human-readable
 ```
 
-Expect ~13–20 GB of Parquet after the full six-year backlog, costing well under $1/month in most regions.
+Expect ~17 GB of Parquet after the full six-year backlog (for example, 16.96 GB in the 2026-01-09 report),
+costing well under $1/month in most regions.
 
 ---
 

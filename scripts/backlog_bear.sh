@@ -138,13 +138,27 @@ while [ "$current_ord" -le "$end_ord" ]; do
       fi
       ecomlake export-raw "${export_args[@]}"
 
-      # Mark dimensions as exported after first successful chunk
+      # Mark dimensions as exported and upload them on first chunk
       if [ ! -f "$DIMENSIONS_EXPORTED_FILE" ]; then
+        echo "☁️  Uploading dimension tables (customers, product_catalog) to gs://${BUCKET}/${PREFIX}"
+
+        # Upload customers (partitioned by signup_date)
+        if [ -d "${TARGET_ROOT}/customers" ]; then
+          echo "  📤 Uploading customers partitions (signup_date=*)"
+          gsutil -m cp -r "${TARGET_ROOT}/customers" "gs://${BUCKET}/${PREFIX}/"
+        fi
+
+        # Upload product_catalog (partitioned by category)
+        if [ -d "${TARGET_ROOT}/product_catalog" ]; then
+          echo "  📤 Uploading product_catalog partitions (category=*)"
+          gsutil -m cp -r "${TARGET_ROOT}/product_catalog" "gs://${BUCKET}/${PREFIX}/"
+        fi
+
         echo "dimensions_exported" > "$DIMENSIONS_EXPORTED_FILE"
-        echo "✅ Dimension tables exported (will not be re-exported in subsequent chunks)"
+        echo "✅ Dimension tables exported and uploaded (will not be re-processed in subsequent chunks)"
       fi
 
-      echo "☁️  Uploading partitions to gs://${BUCKET}/${PREFIX}"
+      echo "☁️  Uploading transactional table partitions to gs://${BUCKET}/${PREFIX}"
       current_date="$chunk_start"
       while true; do
         ecomlake upload-raw \
@@ -167,6 +181,16 @@ PY
       rm -rf "$latest_run"
 
       echo "🧹 Cleaning uploaded local partitions (${chunk_start} → ${chunk_end})"
+
+      # Clean up dimension tables after first chunk upload
+      if [ -f "$DIMENSIONS_EXPORTED_FILE" ] && [ ! -f "${TARGET_ROOT}/.dimensions_cleaned" ]; then
+        echo "  🧹 Cleaning dimension tables (customers, product_catalog)"
+        rm -rf "${TARGET_ROOT}/customers" 2>/dev/null || true
+        rm -rf "${TARGET_ROOT}/product_catalog" 2>/dev/null || true
+        touch "${TARGET_ROOT}/.dimensions_cleaned"
+      fi
+
+      # Clean up transactional table partitions for this chunk's date range
       current_date="$chunk_start"
       while true; do
         # Remove all table partitions for this date

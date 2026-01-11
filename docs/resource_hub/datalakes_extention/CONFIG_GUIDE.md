@@ -120,7 +120,7 @@ Show how customers graduate through tiers and lifetime value.
 
 Keep datasets realistic (or pristine) depending on the exercise.
 
-- CLI flag `--messiness-level` (none/light/medium/heavy) toggles post-export injection.
+- CLI flag `--messiness-level` (`baseline`, `none`, `light_mess`, `medium_mess`, `heavy_mess`) toggles generation-time injection.
 - Run `pytest` after major config changes to ensure QA rules remain intact.
 
 ---
@@ -130,6 +130,7 @@ Keep datasets realistic (or pristine) depending on the exercise.
 - Start with the quick config for smoke tests; graduate to the full template once the pipeline is proven.
 - Increase `customers.num_customers`, carts per day (`tables.shopping_carts.generate`), and `conversion_rate` together to hit target orders/day.
 - Use `ecomlake export-raw --target-size-mb` to control Parquet chunk size (5–20 MB ideal for dev).
+- Use `./scripts/smoke_test.sh` to run a short-range Backlog Bear check before long runs.
 
 ---
 
