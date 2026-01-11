@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import click
+import pandas as pd
 
 from .config import (
     DEFAULT_TARGET_SIZE_MB,
@@ -71,28 +72,71 @@ def cli() -> None:
     show_default=True,
 )
 @click.option(
+    "--start-date",
+    type=str,
+    default=None,
+    help="Start date for data generation (YYYY-MM-DD).",
+)
+@click.option(
+    "--end-date",
+    type=str,
+    default=None,
+    help="End date for data generation (YYYY-MM-DD).",
+)
+@click.option(
     "--generator-src",
     type=click.Path(dir_okay=True, file_okay=False, path_type=Path),
     default=None,
     help="Path to the ecom_sales_data_generator/src directory if not installed.",
 )
+@click.option(
+    "--load-lookups-from",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Directory containing pre-generated customers.csv and product_catalog.csv lookups.",
+)
+@click.option(
+    "--id-state-file",
+    type=click.Path(dir_okay=False, file_okay=True, path_type=Path),
+    default=None,
+    help="Path to JSON file for persisting sequential ID state across chunks.",
+)
 def run_generator_cmd(
     config_path: Path,
     artifact_root: Path,
     messiness_level: str,
+    start_date: str | None,
+    end_date: str | None,
     generator_src: Path | None,
+    load_lookups_from: Path | None,
+    id_state_file: Path | None,
 ) -> None:
     """
     Runs the ecom generator and stores CSV artifacts locally.
     """
     run_ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     output_dir = artifact_root / f"raw_run_{run_ts}"
-    click.echo(f"📦 Generating dataset into {output_dir}")
+
+    date_info = ""
+    if start_date and end_date:
+        date_info = f" for date range {start_date} to {end_date}"
+
+    # Build extra args for new generator features
+    extra_args = []
+    if load_lookups_from:
+        extra_args.extend(["--load-lookups-from", str(load_lookups_from)])
+    if id_state_file:
+        extra_args.extend(["--id-state-file", str(id_state_file)])
+
+    click.echo(f"📦 Generating dataset into {output_dir}{date_info}")
     run_generator_cli(
         config_path=config_path,
         output_dir=output_dir,
         messiness_level=messiness_level,
+        start_date=start_date,
+        end_date=end_date,
         generator_src=generator_src,
+        extra_args=extra_args if extra_args else None,
     )
     click.echo("✅ Generator run complete.")
 
@@ -170,6 +214,12 @@ def run_generator_cmd(
     multiple=True,
     help="Dotted path 'module:function' to run after each partition is written (can repeat).",
 )
+@click.option(
+    "--lookups-from",
+    type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path),
+    default=None,
+    help="Directory containing static lookup CSVs (customers.csv, product_catalog.csv) to export as dimension tables.",
+)
 def export_raw_cmd(
     source: Path,
     target: Path,
@@ -183,6 +233,7 @@ def export_raw_cmd(
     tables: Iterable[str],
     source_prefix: str | None,
     post_export_hooks: Sequence[str],
+    lookups_from: Path | None,
 ) -> None:
     """
     Converts generator CSVs into partitioned Parquet for the raw zone.
@@ -221,7 +272,162 @@ def export_raw_cmd(
     )
     processed_tables: list[str] = []
 
-    for table_name, df in iter_csv_tables(str(source)):
+    # Cache parent tables for JOIN filtering of child tables
+    parent_tables_cache: dict[str, pd.DataFrame] = {}
+
+    # Export dimension tables from static lookups (customers partitioned by signup_date, products by category)
+    if lookups_from:
+        click.echo("📊 Exporting dimension tables from static lookups...")
+
+        # Export customers partitioned by signup_date
+        customers_path = lookups_from / "customers.csv"
+        if customers_path.exists():
+            if not tables or "customers" in tables:
+                click.echo("  └─ customers (partitioned by signup_date)")
+                customers_df = pd.read_csv(customers_path)
+
+                # Group by signup_date and export each partition
+                customers_df["signup_date_only"] = pd.to_datetime(
+                    customers_df["signup_date"]
+                ).dt.date
+                for signup_dt, group_df in customers_df.groupby("signup_date_only"):
+                    partition_df = group_df.drop(columns=["signup_date_only"])
+
+                    # Create partition path: customers/signup_date=YYYY-MM-DD/
+                    partition_dir = target / "customers" / f"signup_date={signup_dt}"
+                    partition_dir.mkdir(parents=True, exist_ok=True)
+
+                    partition_prefix = None
+                    if source_prefix:
+                        partition_prefix = f"{source_prefix}/customers/signup_date={signup_dt}"
+
+                    table_config = require_table_config("customers")
+                    (
+                        manifest_files,
+                        min_event_dt,
+                        max_event_dt,
+                        total_rows,
+                        checksums,
+                    ) = write_partitioned_parquet(
+                        partition_df,
+                        table_config=table_config,
+                        output_root=target,
+                        ingest_dt=None,  # No ingest_dt for dimension tables
+                        batch_id=batch,
+                        source_prefix=partition_prefix,
+                        target_size_mb=target_size_mb,
+                        partition_path_override=f"customers/signup_date={signup_dt}",
+                    )
+
+                    manifest_path = partition_dir / "_MANIFEST.json"
+                    manifest = build_manifest(
+                        table="customers",
+                        batch_id=batch,
+                        partition=f"signup_date={signup_dt}",
+                        files=manifest_files,
+                        created_at=utc_now_iso(),
+                        min_event_dt=min_event_dt,
+                        max_event_dt=max_event_dt,
+                        total_rows=total_rows,
+                        checksums=checksums,
+                    )
+                    write_manifest(manifest_path, manifest)
+                    write_success_marker(partition_dir)
+
+                click.echo(
+                    f"    ✅ Exported {len(customers_df.groupby('signup_date_only'))} signup_date partitions ({len(customers_df)} total customers)"
+                )
+                processed_tables.append("customers")
+
+        # Export products partitioned by category
+        products_path = lookups_from / "product_catalog.csv"
+        if products_path.exists():
+            if not tables or "product_catalog" in tables:
+                click.echo("  └─ product_catalog (partitioned by category)")
+                products_df = pd.read_csv(products_path)
+
+                # Group by category and export each partition
+                for category, group_df in products_df.groupby("category"):
+                    # Create partition path: product_catalog/category=Electronics/
+                    partition_dir = target / "product_catalog" / f"category={category}"
+                    partition_dir.mkdir(parents=True, exist_ok=True)
+
+                    partition_prefix = None
+                    if source_prefix:
+                        partition_prefix = f"{source_prefix}/product_catalog/category={category}"
+
+                    table_config = require_table_config("product_catalog")
+                    (
+                        manifest_files,
+                        min_event_dt,
+                        max_event_dt,
+                        total_rows,
+                        checksums,
+                    ) = write_partitioned_parquet(
+                        group_df,
+                        table_config=table_config,
+                        output_root=target,
+                        ingest_dt=None,  # No ingest_dt for dimension tables
+                        batch_id=batch,
+                        source_prefix=partition_prefix,
+                        target_size_mb=target_size_mb,
+                        partition_path_override=f"product_catalog/category={category}",
+                    )
+
+                    manifest_path = partition_dir / "_MANIFEST.json"
+                    manifest = build_manifest(
+                        table="product_catalog",
+                        batch_id=batch,
+                        partition=f"category={category}",
+                        files=manifest_files,
+                        created_at=utc_now_iso(),
+                        min_event_dt=min_event_dt,
+                        max_event_dt=max_event_dt,
+                        total_rows=total_rows,
+                        checksums=checksums,
+                    )
+                    write_manifest(manifest_path, manifest)
+                    write_success_marker(partition_dir)
+
+                click.echo(
+                    f"    ✅ Exported {len(products_df.groupby('category'))} category partitions ({len(products_df)} total products)"
+                )
+                processed_tables.append("product_catalog")
+
+    # Process tables in dependency order to ensure parents are cached before children
+    # Parent tables must be processed before their children
+    # Note: customers and product_catalog are now exported from static lookups if --lookups-from is provided
+    table_processing_order = [
+        "shopping_carts",  # Parent of cart_items
+        "cart_items",  # Child of shopping_carts
+        "orders",  # Parent of order_items
+        "order_items",  # Child of orders
+        "returns",  # Parent of return_items
+        "return_items",  # Child of returns
+    ]
+
+    # Load all tables into memory first
+    all_tables = {name: df for name, df in iter_csv_tables(str(source))}
+
+    # Process in dependency order
+    tables_to_process = []
+    for table_name in table_processing_order:
+        if table_name in all_tables:
+            tables_to_process.append((table_name, all_tables[table_name]))
+
+    # Add any tables not in the explicit order (for future-proofing)
+    for table_name, df in all_tables.items():
+        if table_name not in table_processing_order:
+            tables_to_process.append((table_name, df))
+
+    for table_name, df in tables_to_process:
+        # Skip dimension tables if they were exported from static lookups
+        if lookups_from and table_name in ("customers", "product_catalog"):
+            click.echo(f"ℹ️  Skipping {table_name} (already exported from static lookups)")
+            # Still cache for potential use by child tables
+            parent_tables_cache[table_name] = df
+            continue
+
         if tables and table_name not in tables:
             continue
         try:
@@ -230,7 +436,71 @@ def export_raw_cmd(
             click.echo(f"⚠️  Skipping unconfigured table: {table_name}")
             continue
 
+        # Cache this table for potential use by child tables
+        parent_tables_cache[table_name] = df
+
         for current_date in resolved_dates:
+            # Filter dataframe by date for this partition
+            date_column = table_config.event_date_column
+
+            if date_column and date_column in df.columns:
+                # Type A: Table has its own date column
+                current_date_str = current_date.isoformat()
+
+                # Extract date portion from datetime strings (e.g., "2020-01-05T23:20:04" -> "2020-01-05")
+                df_dates = df[date_column].astype(str).str[:10]
+                filtered_df = df[df_dates == current_date_str].copy()
+
+                if filtered_df.empty:
+                    click.echo(
+                        f"ℹ️  No rows for {table_name} on {current_date:%Y-%m-%d} (filtered by {date_column}), skipping"
+                    )
+                    continue
+            elif table_name in ("order_items", "return_items"):
+                # Type B: Child tables without date - JOIN with parent
+                if table_name == "order_items":
+                    parent_table = "orders"
+                    join_key = "order_id"
+                    parent_date_column = "order_date"
+                elif table_name == "return_items":
+                    parent_table = "returns"
+                    join_key = "return_id"
+                    parent_date_column = "return_date"
+
+                # Check if parent table is available
+                if parent_table not in parent_tables_cache:
+                    click.echo(
+                        f"⚠️  Cannot filter {table_name}: parent table {parent_table} not found"
+                    )
+                    filtered_df = df.copy()  # Fallback: replicate to all partitions
+                else:
+                    # JOIN with parent to get date
+                    parent_df = parent_tables_cache[parent_table]
+                    current_date_str = current_date.isoformat()
+
+                    # Get IDs for this date from parent
+                    # Extract date portion from datetime strings
+                    parent_dates = parent_df[parent_date_column].astype(str).str[:10]
+                    parent_for_date = parent_df[parent_dates == current_date_str]
+                    valid_ids = set(parent_for_date[join_key])
+
+                    # Filter child table to only matching IDs
+                    filtered_df = df[df[join_key].isin(valid_ids)].copy()
+
+                    if filtered_df.empty:
+                        click.echo(
+                            f"ℹ️  No rows for {table_name} on {current_date:%Y-%m-%d} (filtered via {parent_table}), skipping"
+                        )
+                        continue
+            else:
+                # Type C: Lookup tables - should not reach here if --lookups-from is used
+                # These tables are now partitioned by their natural keys (signup_date, category)
+                click.echo(
+                    f"⚠️  Table {table_name} has no date column and is not a child table. "
+                    f"Consider using --lookups-from to export as a dimension table."
+                )
+                filtered_df = df.copy()  # Fallback: replicate to all partitions
+
             partition_prefix = None
             if source_prefix:
                 partition_prefix = f"{source_prefix}/{table_name}/ingest_dt={current_date:%Y-%m-%d}"
@@ -242,7 +512,7 @@ def export_raw_cmd(
                 total_rows,
                 checksums,
             ) = write_partitioned_parquet(
-                df,
+                filtered_df,
                 table_config=table_config,
                 output_root=target,
                 ingest_dt=current_date,

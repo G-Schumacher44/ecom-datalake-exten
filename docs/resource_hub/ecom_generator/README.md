@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../img/sql_stories_logo.png" width="1000"/>
+  <img src="repo_files/sql_stories_logo.png" width="1000"/>
   <br>
   <em>Retail Scenario Data Generator + QA Framework</em>
 </p>
@@ -7,7 +7,7 @@
 <p align="center">
   <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-lightgrey">
-  <img alt="Version" src="https://img.shields.io/badge/version-v0.3.0-blueviolet">
+  <img alt="Version" src="https://img.shields.io/badge/version-v0.3.1-blueviolet">
 </p>
 
 ---
@@ -120,19 +120,36 @@ This generator goes beyond simple row creation by simulating a complete, interco
 
 This repository is one part of a larger, interconnected set of projects. Here’s how they fit together:
 
-*   **ecom_sales_data_generator (This Repository)** `(The Engine)`
-    *   A custom Python package that produces the realistic, synthetic e-commerce data used in all the case studies. It's the source of truth for the data.
-*   **[sql_stories_skills_builder](https://github.com/G-Schumacher44/sql_stories_skills_builder)** `(Learning Lab)`
-    *   The public-facing skill-building suite. This is the main "product" where my published story modules are available for the community to use for practice and learning.
-*   **[`sql_stories_portfolio_demo`](https://github.com/G-Schumacher44/sql_stories_portfolio_demo/tree/main)** `(The Showcase)`
-    *   A curated and polished version of the best case studies, designed specifically to be a professional portfolio. It demonstrates the practical application of the tools and data from the other repositories.
+
+This repository is one part of a larger, interconnected set of projects. Here’s how they fit together:
+
+* **[`ecom_sales_data_generator`](https://github.com/G-Schumacher44/ecom_sales_data_generator)** `(The Engine - This repository)`  
+  Generates realistic, relational ecommerce datasets. This extension imports it and keeps that repo focused on synthesis.
+* **[`ecom-datalake-exten`](https://github.com/G-Schumacher44/ecom-datalake-exten)** `(The Lake Layer)`  
+  Converts generator output to Parquet, attaches lineage, and publishes to raw/bronze buckets.
+* **[`sql_stories_skills_builder`](https://github.com/G-Schumacher44/sql_stories_skills_builder)** `(Learning Lab)`  
+  Publishes the story modules and exercises that use these datasets for hands-on practice.
+* **[`sql_stories_portfolio_demo`](https://github.com/G-Schumacher44/sql_stories_portfolio_demo/tree/main)** `(The Showcase)`  
+  Curates the best case studies into a polished portfolio for professional storytelling.
+* **gcs-automation-project** `(In Development · The Orchestrator)`  
+  Planned orchestration layer for scheduling backlog runs, triggering BigQuery loads/merges, and coordinating downstream DAGs.
 
 </details> 
 
 <details>
 <summary><strong>🫆 Version Release Notes</strong></summary>
 
-### ✅ v0.3.0 (Current)
+### ✅ v0.3.1 (Current)
+
+This patch release improves the handling of loaded lookup tables and date range control for chunked data generation workflows.
+
+#### 🔧 Bug Fixes & Improvements
+- **Fixed Lookup Preservation**: Lookup tables loaded via `--load-lookups-from` are now properly preserved and will not be overwritten during generation or post-processing steps (e.g., customer tier recalculation, cart total updates)
+- **Improved Date Range Control**: The `global_start_date` parameter now takes precedence over the `signup_years` calculation, providing more precise control over customer signup date ranges when generating sequential data chunks
+
+---
+
+### ✅ v0.3.0
 
 This release introduces a major leap in simulation depth, focusing on realistic customer behavior, detailed financial modeling, and enhanced data quality.
 
@@ -323,6 +340,42 @@ ___
 ecomgen --config config/ecom_sales_gen_template.yaml --messiness-level baseline
 ```
 
+**Static lookups + sequential IDs (chunked runs):**
+
+```bash
+# One-time lookup generation
+./scripts/generate_static_lookups.sh config/ecom_sales_gen_template.yaml artifacts/static_lookups
+
+# Per-chunk generation (example)
+ecomgen \
+  --config config/ecom_sales_gen_template.yaml \
+  --load-lookups-from artifacts/static_lookups \
+  --id-state-file artifacts/.id_state.json \
+  --start-date 2020-01-01 \
+  --end-date 2020-01-31
+```
+
+**Lookup reuse + sequential IDs (direct CLI):**
+
+```bash
+ecomgen \
+  --config config/ecom_sales_gen_template.yaml \
+  --output-dir artifacts/run_2020_01 \
+  --load-lookups-from artifacts/static_lookups \
+  --id-state-file artifacts/.id_state.json \
+  --start-date 2020-01-01 \
+  --end-date 2020-01-31
+```
+
+**Lookup-only mode (generate customers + products and exit):**
+
+```bash
+ecomgen \
+  --config config/ecom_sales_gen_template.yaml \
+  --output-dir artifacts/static_lookups \
+  --generate-lookups-only
+```
+
 ___
 
 ## 🧪 Testing and Validation Guide
@@ -373,16 +426,15 @@ This project is licensed under the [MIT License](LICENSE).</file>
 ___
 
 <p align="center">
-  <a href="../../README.md">🏠 <b>Home</b></a>
+  <a href="README.md">🏠 <b>Main README</b></a>
   &nbsp;·&nbsp;
-  <a href="datalakes_extention/CONFIG_GUIDE.md">⚙️ <b>Lake Config</b></a>
+  <a href="CONFIG_GUIDE.md">⚙️ <b>Config Guide</b></a>
   &nbsp;·&nbsp;
-  <a href="datalakes_extention/TESTING_GUIDE.md">🧪 <b>Testing</b></a>
+  <a href="TESTING_GUIDE.md">🧪 <b>Testing Guide</b></a>
   &nbsp;·&nbsp;
-  <a href="CONFIG_GUIDE_generator.md">🛠️ <b>Generator Config</b></a>
+  <a href="https://github.com/G-Schumacher44/sql_stories_portfolio_demo">📸 <b>See it in Action</b></a>
 </p>
 
 <p align="center">
   <sub>✨ Synthetic Data · Python · QA Framework ✨</sub>
 </p>
-
