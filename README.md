@@ -71,7 +71,7 @@ ___
 
     ecomlake upload-raw \
       --source output/raw \
-      --bucket acme-analytics-raw \
+      --bucket your-bucket-name-raw \
       --prefix ecom/raw \
       --ingest-date 2024-02-15
     ```
@@ -320,11 +320,11 @@ ecomlake export-raw \
 gcloud auth application-default login  # or set GOOGLE_APPLICATION_CREDENTIALS
 ecomlake upload-raw \
   --source output/raw \
-  --bucket acme-analytics-raw \
+  --bucket your-bucket-name-raw \
   --prefix ecom/raw \
   --ingest-date 2024-02-15 \
   --dry-run  # remove flag when ready to push
-# resulting GCS path: gs://acme-analytics-raw/ecom/raw/orders/ingest_dt=2024-02-15/
+# resulting GCS path: gs://your-bucket-name-raw/ecom/raw/orders/ingest_dt=2024-02-15/
 ```
 
 </details>
