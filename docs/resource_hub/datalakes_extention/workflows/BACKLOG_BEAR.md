@@ -36,7 +36,7 @@ pip install -e '../ecom_sales_data_generator'  # or install from git
 gcloud auth application-default login          # or export GOOGLE_APPLICATION_CREDENTIALS
 ```
 
-Also ensure the destination bucket (`gs://gcs-automation-project-raw/ecom/raw`) exists and that you have
+Also ensure the destination bucket (`gs://acme-analytics-raw/ecom/raw`) exists and that you have
 enough local disk space for temporary Parquet output (`artifacts/`, `output/raw/`).
 
 ---
@@ -50,7 +50,7 @@ The automation lives at `scripts/backlog_bear.sh` and ships with sensible defaul
 | `CONFIG_PATH`             | Generator YAML driving behavior                | `gen_config/ecom_sales_gen_quick.yaml` |
 | `ARTIFACT_ROOT`           | Location for generator CSV runs                | `artifacts`                            |
 | `TARGET_ROOT`             | Parquet landing zone prior to upload           | `output/raw`                           |
-| `BUCKET`                  | Raw bucket (no `gs://`)                        | `gcs-automation-project-raw`           |
+| `BUCKET`                  | Raw bucket (no `gs://`)                        | `acme-analytics-raw`           |
 | `PREFIX`                  | Path prefix inside the bucket                  | `ecom/raw`                             |
 | `MESSINESS_LEVEL`         | Generator realism level                        | `medium_mess`                          |
 | `START_DATE` / `END_DATE` | Six-year range                                 | `2020-01-01` → `2026-01-08`            |
@@ -112,7 +112,7 @@ For each 30-day chunk (74 chunks total):
    - **Transactional tables** (every chunk):
      - Orders, carts, returns: Partitioned by event date (`ingest_dt=YYYY-MM-DD`)
      - Child tables (order_items, cart_items, return_items): Filtered via parent table JOIN
-5. **Upload to GCS** - Uploads partitions with manifests to `gs://gcs-automation-project-raw/ecom/raw`
+5. **Upload to GCS** - Uploads partitions with manifests to `gs://acme-analytics-raw/ecom/raw`
 6. **Clean Up** - Removes local CSV and Parquet files to save disk space
 7. **Save Checkpoint** - Records completed date in `artifacts/.backlog_checkpoint`
 8. **Update ID State** - Persists last used IDs for next chunk
@@ -151,7 +151,7 @@ It creates `scripts/backlog_bear_test.sh` with a reduced window and then runs it
 
 ```bash
 # Set your bucket and prefix once for all checks
-export BUCKET="gcs-automation-project-raw"
+export BUCKET="acme-analytics-raw"
 export PREFIX="ecom/raw"
 
 # Preflight: verify auth and path
@@ -184,7 +184,7 @@ python -c "import pandas as pd; print(pd.read_parquet('output/raw/orders/ingest_
 ### Storage Footprint
 
 ```bash
-gcloud storage du gs://gcs-automation-project-raw --recursive --summarize --human-readable
+gcloud storage du gs://acme-analytics-raw --recursive --summarize --human-readable
 ```
 
 Expect ~17 GB of Parquet after the full six-year backlog (for example, 16.96 GB in the 2026-01-09 report),

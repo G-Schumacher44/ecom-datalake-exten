@@ -127,7 +127,7 @@ gcloud auth application-default login
 
 ecomlake upload-raw \
   --source output/raw \
-  --bucket gcs-automation-project-raw \
+  --bucket acme-analytics-raw \
   --prefix ecom/raw \
   --ingest-date 2024-02-15 \
   --dry-run

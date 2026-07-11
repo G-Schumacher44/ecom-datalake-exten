@@ -71,7 +71,7 @@ ___
 
     ecomlake upload-raw \
       --source output/raw \
-      --bucket gcs-automation-project-raw \
+      --bucket acme-analytics-raw \
       --prefix ecom/raw \
       --ingest-date 2024-02-15
     ```
@@ -135,7 +135,7 @@ This repository is one part of a larger, interconnected set of projects. Here’
   Publishes the story modules and exercises that use these datasets for hands-on practice.
 * **[`sql_stories_portfolio_demo`](https://github.com/G-Schumacher44/sql_stories_portfolio_demo/tree/main)** `(The Showcase)`  
   Curates the best case studies into a polished portfolio for professional storytelling.
-* **gcs-automation-project** `(In Development · The Orchestrator)`  
+* **acme-analytics** `(In Development · The Orchestrator)`  
   Planned orchestration layer for scheduling backlog runs, triggering BigQuery loads/merges, and coordinating downstream DAGs.
 
 </details>
@@ -320,11 +320,11 @@ ecomlake export-raw \
 gcloud auth application-default login  # or set GOOGLE_APPLICATION_CREDENTIALS
 ecomlake upload-raw \
   --source output/raw \
-  --bucket gcs-automation-project-raw \
+  --bucket acme-analytics-raw \
   --prefix ecom/raw \
   --ingest-date 2024-02-15 \
   --dry-run  # remove flag when ready to push
-# resulting GCS path: gs://gcs-automation-project-raw/ecom/raw/orders/ingest_dt=2024-02-15/
+# resulting GCS path: gs://acme-analytics-raw/ecom/raw/orders/ingest_dt=2024-02-15/
 ```
 
 </details>
