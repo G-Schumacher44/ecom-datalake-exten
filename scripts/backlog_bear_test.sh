@@ -5,7 +5,7 @@ set -euo pipefail
 CONFIG_PATH="gen_config/ecom_sales_gen_quick.yaml"
 ARTIFACT_ROOT="artifacts"
 TARGET_ROOT="output/raw"
-BUCKET="gcs-automation-project-raw"
+BUCKET="${BUCKET:-acme-analytics-raw}"
 PREFIX="ecom/raw"
 MESSINESS_LEVEL="medium_mess"
 START_DATE="2020-01-01"

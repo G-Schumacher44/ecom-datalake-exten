@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUCKET="${1:-gcs-automation-project-raw}"
+BUCKET="${1:-${BUCKET:-acme-analytics-raw}}"
 PREFIX="${2:-ecom/raw}"
 SOURCE_ROOT="${3:-output/raw}"
 
