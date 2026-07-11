@@ -140,7 +140,7 @@
 ## 10. Open Questions & Follow-Up
 
 1. Confirm final module structure for CLI refactor (`src/ecom_datalake_extension/cli/` vs. separate top-level modules).  
-2. Decide on default log format (plain text vs. JSON) to align with upcoming `gcs-automation-project`.  
+2. Decide on default log format (plain text vs. JSON) to align with upcoming `acme-analytics`.  
 3. Determine whether manifest validation should become its own CLI command or remain a hook/example.  
 
 

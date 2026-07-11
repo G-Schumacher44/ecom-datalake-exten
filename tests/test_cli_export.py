@@ -16,7 +16,7 @@ def test_export_raw_cli(tmp_path):
         [
             {
                 "order_id": "ORDER-123",
-                "order_date": "2024-02-01",
+                "order_date": "2024-02-15",
                 "customer_id": "CUST-001",
                 "gross_total": 99.0,
                 "net_total": 95.0,
@@ -117,12 +117,20 @@ def test_export_raw_cli_multiple_dates(tmp_path):
         [
             {
                 "order_id": "ORDER-001",
-                "order_date": "2024-02-01",
+                "order_date": "2024-02-15",
                 "customer_id": "CUST-1",
                 "gross_total": 10.0,
                 "net_total": 9.0,
                 "order_channel": "Web",
-            }
+            },
+            {
+                "order_id": "ORDER-002",
+                "order_date": "2024-02-16",
+                "customer_id": "CUST-2",
+                "gross_total": 20.0,
+                "net_total": 18.0,
+                "order_channel": "Web",
+            },
         ]
     )
     data.to_csv(source_dir / "orders.csv", index=False)
@@ -171,7 +179,7 @@ def write_manifest_summary(context):
         [
             {
                 "order_id": "HOOK-001",
-                "order_date": "2024-03-01",
+                "order_date": "2024-03-02",
                 "customer_id": "HOOK",
                 "gross_total": 20.0,
                 "net_total": 18.0,
